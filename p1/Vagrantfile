@@ -1,5 +1,4 @@
 Vagrant.configure("2") do |config|
-    username = `whoami`.strip
     config.vm.synced_folder "./confs", "/vagrant_shared"
   
     config.vm.provider "virtualbox" do |vb|
