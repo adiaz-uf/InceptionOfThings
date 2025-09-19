@@ -1,8 +1,11 @@
 NAME = p1
 
-all: up clean-windows
+all: up clean-linux
 
-up:
+prepare:
+	@mkdir -p ./confs
+
+up: prepare
 	vagrant up
 
 down:
@@ -22,4 +25,4 @@ s:
 sw:
 	vagrant ssh alaparicSW
 
-.PHONY: all up down s sw
+.PHONY: all up down s sw prepare clean-linux clean-windows
