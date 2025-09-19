@@ -10,7 +10,7 @@ down:
 
 re: down up
 
-s:
-	vagrant ssh adiaz-ufS
+vm:
+	vagrant ssh iot-argocd
 
 .PHONY: all up down s sw
