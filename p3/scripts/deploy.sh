@@ -33,46 +33,11 @@ kubectl wait --for=condition=available --timeout=600s deployment/argocd-server -
 
 echo "[4.1/6] Replacing default Argo CD server Service with LoadBalancer with fixed nodePort $ARGOCD_NODEPORT..."
 kubectl delete svc argocd-server -n $ARGOCD_NS || true
-
-cat <<EOF | kubectl apply -n $ARGOCD_NS -f -
-apiVersion: v1
-kind: Service
-metadata:
-  name: argocd-server
-  labels:
-    app.kubernetes.io/name: argocd-server
-spec:
-  type: LoadBalancer
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
-    nodePort: $ARGOCD_NODEPORT
-  selector:
-    app.kubernetes.io/name: argocd-server
-EOF
+kubectl apply -f /home/vagrant/confs/argocd-server.yaml
 
 echo "[5/6] Creating Argo CD Application from GitHub repo..."
-cat <<EOF | kubectl apply -f -
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: $APP_NAME
-  namespace: $ARGOCD_NS
-spec:
-  project: default
-  source:
-    repoURL: $GITHUB_REPO
-    targetRevision: HEAD
-    path: .
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: $DEV_NS
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-EOF
+kubectl apply -f /home/vagrant/confs/wil-app.yaml
+
 
 echo "[6/6] ✅ Deployment completed!"
 echo "========================================="
