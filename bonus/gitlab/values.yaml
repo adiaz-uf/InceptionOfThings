@@ -1,0 +1,49 @@
+# GitLab Helm Chart Values
+# Optimized for development environment with minimal resources
+
+global:
+  hosts:
+    domain: 192.168.56.111.nip.io
+    externalIP: 192.168.56.111
+  edition: ce
+  
+  # Ingress configuration - disable it for direct service access
+  ingress:
+    enabled: false
+    configureCertmanager: false
+    tls:
+      enabled: false
+
+# Disable non-essential services to save resources
+gitlab-runner:
+  install: true
+
+certmanager-issuer:
+  email: admin@example.com
+
+nginx-ingress:
+  enabled: false
+  
+prometheus:
+  install: false
+
+grafana:
+  enabled: false
+
+# Persistence configuration
+redis:
+  persistence:
+    size: 2Gi
+    
+postgresql:
+  persistence:
+    size: 4Gi
+
+# Configure webservice to use LoadBalancer
+gitlab:
+  webservice:
+    service:
+      type: LoadBalancer
+      loadBalancerIP: 192.168.56.111
+    ingress:
+      enabled: false

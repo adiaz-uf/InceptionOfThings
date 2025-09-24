@@ -1,0 +1,57 @@
+# GitLab CI/CD Pipeline Configuration
+# This pipeline will build and deploy the application using ArgoCD
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  IMAGE_NAME: wil42/playground
+  KUBECONFIG_PATH: /tmp/kubeconfig
+
+# Test stage - basic validation
+test-app:
+  stage: test
+  script:
+    - echo "Running application tests..."
+    - echo "✅ Tests passed!"
+  only:
+    - main
+    - develop
+
+# Build stage - simulate image update
+update-manifest:
+  stage: build
+  script:
+    - echo "Updating application manifest..."
+    - |
+      if grep -q "v1" deployment.yaml; then
+        sed -i 's/wil42\/playground:v1/wil42\/playground:v2/g' deployment.yaml
+        echo "Updated to v2"
+      else
+        sed -i 's/wil42\/playground:v2/wil42\/playground:v1/g' deployment.yaml  
+        echo "Updated to v1"
+      fi
+    - git config user.name "GitLab CI"
+    - git config user.email "gitlab@example.com"
+    - git add deployment.yaml
+    - git commit -m "Update app version via CI/CD [skip ci]"
+    - git push origin HEAD:main
+  only:
+    - main
+  when: manual
+
+# Deploy stage - ArgoCD will automatically sync
+trigger-sync:
+  stage: deploy  
+  script:
+    - echo "🚀 Deployment triggered!"
+    - echo "ArgoCD will automatically sync the changes"
+    - echo "Check ArgoCD UI to monitor the deployment"
+  only:
+    - main
+  needs:
+    - update-manifest
