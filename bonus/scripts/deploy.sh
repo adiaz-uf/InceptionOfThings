@@ -15,20 +15,35 @@ echo "🚀 Starting GitLab + ArgoCD deployment..."
 echo "========================================="
 
 echo "[1/8] Creating K3d cluster with port mappings..."
-# Create cluster with specific ports for GitLab and ArgoCD
+# Create stable cluster with proper resource limits
 k3d cluster create $CLUSTER_NAME \
   -p "8080:30080@server:0" \
-  -p "8443:443@loadbalancer" \
   -p "31080:31080@loadbalancer" \
-  --agents 2 \
+  --agents 1 \
   --k3s-arg "--disable=traefik@server:*" \
-  --wait --timeout 300s || echo "Cluster might already exist"
+  --k3s-arg "--disable=servicelb@server:*" \
+  --wait --timeout 600s || echo "Cluster might already exist"
+
+# Ensure cluster is stable before proceeding
+echo "⏳ Waiting for cluster to stabilize..."
+sleep 30
 
 echo "[2/8] Configuring kubeconfig..."
 mkdir -p /home/vagrant/.kube
 k3d kubeconfig get $CLUSTER_NAME > /home/vagrant/.kube/config
 chown -R vagrant:vagrant /home/vagrant/.kube
 export KUBECONFIG=/home/vagrant/.kube/config
+
+# Verify cluster connectivity before proceeding
+echo "⏳ Verifying cluster connectivity..."
+for i in {1..10}; do
+  if kubectl get nodes >/dev/null 2>&1; then
+    echo "✅ Cluster connectivity verified"
+    break
+  fi
+  echo "⏳ Waiting for cluster... ($i/10)"
+  sleep 10
+done
 
 echo "[3/8] Creating Kubernetes namespaces..."
 kubectl create namespace $GITLAB_NS --dry-run=client -o yaml | kubectl apply -f -
@@ -59,6 +74,24 @@ kubectl wait --for=condition=available --timeout=600s deployment/argocd-server -
 
 echo "⏳ Waiting for GitLab webservice (up to 15 minutes)..."
 kubectl wait --for=condition=available --timeout=900s deployment/gitlab-webservice-default -n $GITLAB_NS
+
+echo "⏳ Waiting for GitLab sidekiq (critical for login)..."
+kubectl wait --for=condition=available --timeout=600s deployment/gitlab-sidekiq-all-in-1-v2 -n $GITLAB_NS
+
+# Additional wait for GitLab internal initialization
+echo "⏳ Waiting for GitLab to fully initialize..."
+sleep 120
+
+# Verify GitLab is responding
+echo "🔍 Testing GitLab connectivity..."
+for i in {1..20}; do
+  if curl -s -o /dev/null -w "%{http_code}" http://192.168.56.111:8080 | grep -q "200\|302"; then
+    echo "✅ GitLab is responding"
+    break
+  fi
+  echo "⏳ Waiting for GitLab response... ($i/20)"
+  sleep 15
+done
 
 echo "🔑 Extracting passwords..."
 # GitLab password
@@ -98,3 +131,8 @@ echo "====================================="
 echo ""
 echo "🔍 Running system verification..."
 bash /home/vagrant/scripts/verify.sh
+
+# Run auto-setup
+echo ""
+echo "🚀 Running auto-setup..."
+bash /home/vagrant/scripts/auto-setup.sh

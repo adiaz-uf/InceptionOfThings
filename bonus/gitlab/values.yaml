@@ -1,5 +1,5 @@
-# GitLab Helm Chart Values
-# Optimized for development environment with minimal resources
+# GitLab Helm Chart Values - Minimal Stable Configuration
+# Optimized for development environment with maximum stability
 
 global:
   hosts:
@@ -7,16 +7,19 @@ global:
     externalIP: 192.168.56.111
   edition: ce
   
-  # Ingress configuration - disable it for direct service access
+  # Disable problematic features
   ingress:
     enabled: false
     configureCertmanager: false
     tls:
       enabled: false
+  
+  # Minimal resource usage
+  nodeSelector: {}
 
-# Disable non-essential services to save resources
+# Disable ALL non-essential services for stability
 gitlab-runner:
-  install: true
+  install: false
 
 certmanager-issuer:
   email: admin@example.com
@@ -30,20 +33,40 @@ prometheus:
 grafana:
   enabled: false
 
-# Persistence configuration
+registry:
+  enabled: false
+
+# Minimal persistence
 redis:
   persistence:
-    size: 2Gi
+    size: 1Gi
     
 postgresql:
   persistence:
-    size: 4Gi
+    size: 2Gi
 
-# Configure webservice to use LoadBalancer
+# Minimal GitLab configuration
 gitlab:
   webservice:
-    service:
-      type: LoadBalancer
-      loadBalancerIP: 192.168.56.111
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      limits:
+        memory: 1Gi
+        cpu: 500m
+      requests:
+        memory: 512Mi
+        cpu: 250m
     ingress:
       enabled: false
+      
+  sidekiq:
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      limits:
+        memory: 512Mi
+        cpu: 250m
+      requests:
+        memory: 256Mi
+        cpu: 125m
