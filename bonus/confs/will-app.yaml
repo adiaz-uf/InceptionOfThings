@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     # Chane url
-    repoURL: 'http://gitlab.192.168.56.111.nip.io:8080/root/wil-app.git'
+    repoURL: 'http://gitlab.192.168.56.111:8080/root/wil-app.git'
     path: .
     targetRevision: HEAD
   destination:

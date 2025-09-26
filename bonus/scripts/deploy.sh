@@ -9,7 +9,7 @@ CLUSTER_NAME="gitlab-cluster"
 GITLAB_NS="gitlab"
 ARGOCD_NS="argocd"
 DEV_NS="dev"
-GITLAB_DOMAIN="192.168.56.111.nip.io"
+GITLAB_DOMAIN="192.168.56.111"
 
 echo "🚀 Starting GitLab + ArgoCD deployment..."
 echo "========================================="
@@ -17,7 +17,7 @@ echo "========================================="
 echo "[1/8] Creating K3d cluster with port mappings..."
 # Create stable cluster with proper resource limits
 k3d cluster create $CLUSTER_NAME \
-  -p "8080:30080@server:0" \
+  -p "8080:30888@loadbalancer" \
   -p "31080:31080@loadbalancer" \
   --agents 1 \
   --k3s-arg "--disable=traefik@server:*" \
@@ -50,37 +50,27 @@ kubectl create namespace $GITLAB_NS --dry-run=client -o yaml | kubectl apply -f 
 kubectl create namespace $ARGOCD_NS --dry-run=client -o yaml | kubectl apply -f -
 kubectl create namespace $DEV_NS --dry-run=client -o yaml | kubectl apply -f -
 
-echo "[4/8] Adding GitLab Helm repository..."
-helm repo add gitlab https://charts.gitlab.io/
-helm repo update
+echo "[4/8] GitLab will be installed with Kubernetes manifests..."
 
-echo "[5/8] Installing GitLab CE via Helm..."
-echo "⚠️  This step takes 5-10 minutes - GitLab is downloading and starting..."
-helm upgrade --install gitlab gitlab/gitlab \
-  --namespace $GITLAB_NS \
-  --values /home/vagrant/gitlab/values.yaml \
-  --timeout=1200s
+echo "[5/8] Installing GitLab CE with simple Kubernetes manifests..."
+echo "⚠️  This approach is more reliable than Helm chart..."
+kubectl apply -f /home/vagrant/confs/gitlab-simple.yaml
 
 echo "[6/8] Installing ArgoCD..."
 kubectl apply -n $ARGOCD_NS -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 echo "[7/8] Applying custom configurations..."
 kubectl apply -f /home/vagrant/confs/argocd-server.yaml
-kubectl apply -f /home/vagrant/confs/gitlab-webservice.yaml
 
 echo "[8/8] Waiting for services to be ready..."
 echo "⏳ Waiting for ArgoCD server (up to 10 minutes)..."
 kubectl wait --for=condition=available --timeout=600s deployment/argocd-server -n $ARGOCD_NS
 
-echo "⏳ Waiting for GitLab webservice (up to 15 minutes)..."
-kubectl wait --for=condition=available --timeout=900s deployment/gitlab-webservice-default -n $GITLAB_NS
+echo "⏳ Waiting for GitLab deployment..."
+kubectl wait --for=condition=available --timeout=900s deployment/gitlab -n $GITLAB_NS
 
-echo "⏳ Waiting for GitLab sidekiq (critical for login)..."
-kubectl wait --for=condition=available --timeout=600s deployment/gitlab-sidekiq-all-in-1-v2 -n $GITLAB_NS
-
-# Additional wait for GitLab internal initialization
-echo "⏳ Waiting for GitLab to fully initialize..."
-sleep 120
+echo "⏳ Allowing GitLab to fully initialize (3 minutes)..."
+sleep 180
 
 # Verify GitLab is responding
 echo "🔍 Testing GitLab connectivity..."
@@ -93,9 +83,22 @@ for i in {1..20}; do
   sleep 15
 done
 
+# Verify GitLab is responding
+echo "🔍 Testing GitLab connectivity..."
+for i in {1..10}; do
+  if curl -s -o /dev/null -w "%{http_code}" http://192.168.56.111:8080 | grep -q "200\|302"; then
+    echo "✅ GitLab is responding"
+    break
+  fi
+  echo "⏳ Waiting for GitLab response... ($i/10)"
+  sleep 15
+done
+
+echo "✅ Basic configuration applied"
+
 echo "🔑 Extracting passwords..."
 # GitLab password
-kubectl get secret gitlab-gitlab-initial-root-password -n $GITLAB_NS -ojsonpath='{.data.password}' | base64 --decode > /tmp/gitlab-root-password.txt
+kubectl exec -n $GITLAB_NS deployment/gitlab -- grep 'Password:' /etc/gitlab/initial_root_password | cut -d' ' -f2 > /tmp/gitlab-root-password.txt || echo "Password will be available after GitLab fully starts"
 echo "GitLab root password saved to /tmp/gitlab-root-password.txt"
 
 # ArgoCD password
@@ -113,7 +116,7 @@ echo ""
 echo "🔑 LOGIN CREDENTIALS:"
 echo "   GitLab:"
 echo "     Username: root"
-echo "     Password: $(cat /tmp/gitlab-root-password.txt)"
+echo "     Password: $(cat /tmp/gitlab-root-password.txt 2>/dev/null || echo 'Check /tmp/gitlab-root-password.txt in a few minutes')"
 echo ""
 echo "   ArgoCD:"
 echo "     Username: admin"

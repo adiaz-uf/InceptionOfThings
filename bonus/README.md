@@ -67,7 +67,7 @@ Or use git:
 ```bash
 # Inside the VM
 vagrant ssh iot-gitlab
-git clone http://gitlab.192.168.56.111.nip.io:8080/root/wil-app.git
+git clone http://gitlab.192.168.56.111:8080/root/wil-app.git
 cd wil-app
 cp /home/vagrant/gitlab/app-manifests/* .
 git add .

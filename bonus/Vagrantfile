@@ -16,7 +16,7 @@ Vagrant.configure("2") do |config|
 
     server.vm.provider "virtualbox" do |vb|
       vb.name = "iot-gitlab"
-      vb.memory = 6144
+      vb.memory = 8192   # Increased to handle GitLab memory requirements
       vb.cpus = 4
     end
   end

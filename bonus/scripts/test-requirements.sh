@@ -1,13 +1,13 @@
 #!/bin/bash
 # Comprehensive test script for IoT Bonus requirements
-# Run this after GitLab project setup is complete
+# Run after GitLab project setup is complete
 
 echo "🧪 IoT Bonus - Requirements Testing"
 echo "=================================="
 
 # Test 1: GitLab instance running locally
 echo "[1/8] Testing GitLab local instance..."
-if curl -s -o /dev/null -w "%{http_code}" http://192.168.56.111.nip.io:8080 | grep -q "200\|302"; then
+if curl -s -o /dev/null -w "%{http_code}" http://192.168.56.111:8080 | grep -q "200\|302"; then
     echo "✅ GitLab is accessible locally"
 else
     echo "❌ GitLab not accessible"
@@ -103,7 +103,7 @@ echo "=================================="
 
 # Overall assessment
 echo "🔗 ACCESS URLS:"
-echo "   GitLab:  http://192.168.56.111.nip.io:8080"
+echo "   GitLab:  http://192.168.56.111:8080"
 echo "   ArgoCD:  http://192.168.56.111:31080"
 echo "   App:     http://192.168.56.111:30888"
 

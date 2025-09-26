@@ -74,7 +74,7 @@ echo "[7/8] Checking service accessibility..."
 GITLAB_SVC=$(kubectl get svc -n gitlab -l app=webservice --no-headers 2>/dev/null | wc -l)
 if [ "$GITLAB_SVC" -gt 0 ]; then
     echo "✅ GitLab service available"
-    echo "   Access at: http://192.168.56.111.nip.io:8080"
+    echo "   Access at: http://192.168.56.111:8080"
 else
     echo "⏳ GitLab service not ready"
 fi

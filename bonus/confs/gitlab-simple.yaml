@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab
+  namespace: gitlab
+  labels:
+    app: gitlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      containers:
+      - name: gitlab
+        image: gitlab/gitlab-ce:latest
+        ports:
+        - containerPort: 80
+        - containerPort: 22
+        env:
+        - name: GITLAB_OMNIBUS_CONFIG
+          value: |
+            external_url 'http://192.168.56.111:8080'
+            gitlab_rails['gitlab_host'] = '192.168.56.111'
+            gitlab_rails['gitlab_port'] = 8080
+            gitlab_rails['gitlab_https'] = false
+            nginx['listen_port'] = 80
+            nginx['listen_https'] = false
+            nginx['redirect_http_to_https'] = false
+            gitlab_rails['gitlab_ssh_host'] = '192.168.56.111'
+            gitlab_rails['gitlab_ssh_port'] = 2222
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: gitlab-data
+          mountPath: /var/opt/gitlab
+        - name: gitlab-logs
+          mountPath: /var/log/gitlab
+        - name: gitlab-config
+          mountPath: /etc/gitlab
+      volumes:
+      - name: gitlab-data
+        emptyDir: {}
+      - name: gitlab-logs
+        emptyDir: {}
+      - name: gitlab-config
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30888
+  - name: ssh
+    port: 22
+    targetPort: 22
+    nodePort: 30022
+  selector:
+    app: gitlab

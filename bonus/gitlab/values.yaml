@@ -1,10 +1,13 @@
-# GitLab Helm Chart Values - Minimal Stable Configuration
-# Optimized for development environment with maximum stability
+# GitLab Helm Chart Values - Working Configuration
+# Optimized for development environment with proper external URL
 
 global:
   hosts:
-    domain: 192.168.56.111.nip.io
+    domain: 192.168.56.111
     externalIP: 192.168.56.111
+    gitlab:
+      name: 192.168.56.111
+      https: false
   edition: ce
   
   # Disable problematic features
@@ -45,11 +48,57 @@ postgresql:
   persistence:
     size: 2Gi
 
-# Minimal GitLab configuration
+# GitLab configuration with proper external URL
 gitlab:
   webservice:
     minReplicas: 1
     maxReplicas: 1
+    resources:
+      limits:
+        memory: 2.5Gi
+        cpu: 1000m
+      requests:
+        memory: 1Gi
+        cpu: 500m
+    ingress:
+      enabled: false
+    # Adjust probes for slower startup
+    deployment:
+      livenessProbe:
+        initialDelaySeconds: 120
+        periodSeconds: 20
+        timeoutSeconds: 60
+        failureThreshold: 10
+      readinessProbe:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        timeoutSeconds: 30
+        failureThreshold: 10
+      
+  sidekiq:
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+      requests:
+        memory: 1Gi
+        cpu: 500m
+    # More generous probes for sidekiq
+    deployment:
+      livenessProbe:
+        initialDelaySeconds: 120
+        periodSeconds: 20
+        timeoutSeconds: 60
+        failureThreshold: 10
+      readinessProbe:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        timeoutSeconds: 30
+        failureThreshold: 10
+
+  gitaly:
     resources:
       limits:
         memory: 1Gi
@@ -57,16 +106,3 @@ gitlab:
       requests:
         memory: 512Mi
         cpu: 250m
-    ingress:
-      enabled: false
-      
-  sidekiq:
-    minReplicas: 1
-    maxReplicas: 1
-    resources:
-      limits:
-        memory: 512Mi
-        cpu: 250m
-      requests:
-        memory: 256Mi
-        cpu: 125m
