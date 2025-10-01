@@ -33,13 +33,31 @@ spec:
             nginx['redirect_http_to_https'] = false
             gitlab_rails['gitlab_ssh_host'] = '192.168.56.111'
             gitlab_rails['gitlab_ssh_port'] = 2222
+            # Disable problematic features for stability
+            gitlab_rails['gitlab_signup_enabled'] = false
+            gitlab_rails['gravatar_enabled'] = false
+            gitlab_workhorse['enable'] = true
+            sidekiq['enable'] = true
+            # Reduce resource usage
+            postgresql['shared_buffers'] = "128MB"
+            postgresql['max_connections'] = 100
+            # Additional memory optimizations
+            puma['worker_processes'] = 1
+            puma['min_threads'] = 1
+            puma['max_threads'] = 2
+            sidekiq['max_concurrency'] = 5
+            gitaly['env'] = {
+              'GITALY_COMMAND_SPAWN_MAX_PARALLEL' => '1'
+            }
+            # Disable memory-intensive features
+            prometheus_monitoring['enable'] = false
         resources:
           requests:
-            memory: "2Gi"
-            cpu: "1000m"
+            memory: "1.5Gi"
+            cpu: "500m"
           limits:
-            memory: "4Gi"
-            cpu: "2000m"
+            memory: "3Gi"
+            cpu: "1500m"
         volumeMounts:
         - name: gitlab-data
           mountPath: /var/opt/gitlab

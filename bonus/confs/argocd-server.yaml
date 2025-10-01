@@ -18,11 +18,11 @@ spec:
   selector:
     app.kubernetes.io/name: argocd-server
 ---
-# Configuración adicional para ArgoCD sin HTTPS (simplificado para desarrollo)
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-cmd-params-cm
   namespace: argocd
 data:
-  server.insecure: "true"  # Permite acceso HTTP sin HTTPS
+  server.insecure: "true" 

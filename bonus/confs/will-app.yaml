@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   source:
-    # Chane url
-    repoURL: 'http://gitlab.192.168.56.111:8080/root/wil-app.git'
+    # Local GitLab repository URL
+    repoURL: 'http://gitlab.gitlab.svc.cluster.local:80/root/wil-app.git'
     path: .
     targetRevision: HEAD
   destination:
@@ -17,7 +17,7 @@ spec:
     namespace: dev
   syncPolicy:
     automated:
-      prune: true      # Delete resources 
-      selfHeal: true   # Corrige cambios manuales en el cluster
+      prune: true
+      selfHeal: true 
     syncOptions:
-      - CreateNamespace=true  # Crea el namespace si no existe
+      - CreateNamespace=true
