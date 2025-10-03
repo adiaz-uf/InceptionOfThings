@@ -25,4 +25,4 @@ s:
 sw:
 	vagrant ssh alaparicSW
 
-.PHONY: all up down s sw prepare clean-linux clean-windows
+.PHONY: all up down re s sw prepare clean-linux clean-windows

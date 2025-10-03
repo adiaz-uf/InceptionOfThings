@@ -45,4 +45,4 @@ debug:
 	vagrant ssh iot-gitlab -c "echo '=== EVENTS ==='; kubectl get events -n gitlab --sort-by='.lastTimestamp' | tail -10"
 
 
-.PHONY: all up down re vm verify configure fix-gitlab passwords logs-gitlab logs-argocd status debug test sync
+.PHONY: all up down re vm verify passwords logs-gitlab logs-argocd status debug sync

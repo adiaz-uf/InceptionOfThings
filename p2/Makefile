@@ -13,4 +13,4 @@ re: down up
 s:
 	vagrant ssh adiaz-ufS
 
-.PHONY: all up down s sw
+.PHONY: all up down re s

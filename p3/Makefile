@@ -13,4 +13,4 @@ re: down up
 vm:
 	vagrant ssh iot-argocd
 
-.PHONY: all up down s sw
+.PHONY: all up down re vm
