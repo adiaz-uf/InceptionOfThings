@@ -1,16 +1,33 @@
 NAME = p3
 
-all: up
+all: deploy
 
-up:
-	vagrant up
+setup:
+	@echo "Running setup script..."
+	@bash scripts/setup.sh
 
-down:
-	vagrant destroy -f
+deploy:
+	@echo "Running deployment script..."
+	@bash scripts/deploy.sh
 
-re: down up
+clean:
+	@echo "Destroying K3D cluster..."
+	@k3d cluster delete mycluster || true
 
-vm:
-	vagrant ssh iot-argocd
+re: clean deploy
 
-.PHONY: all up down re vm
+status:
+	@echo "Cluster status:"
+	@k3d cluster list
+	@echo "\nKubernetes nodes:"
+	@kubectl get nodes 2>/dev/null || echo "No cluster found"
+	@echo "\nArgoCD pods:"
+	@kubectl get pods -n argocd 2>/dev/null || echo "ArgoCD namespace not found"
+	@echo "\nDev namespace pods:"
+	@kubectl get pods -n dev 2>/dev/null || echo "Dev namespace not found"
+
+password:
+	@echo "ArgoCD admin password:"
+	@kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" 2>/dev/null | base64 -d && echo || echo "ArgoCD not installed"
+
+.PHONY: all setup deploy clean re status password
