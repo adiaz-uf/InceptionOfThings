@@ -2,7 +2,7 @@
 
 Kubernetes initiation project with K3s, K3d and Vagrant.
 
-## Installation and Setup
+## ⚙️ Installation and Setup
 
 ```bash
 git clone https://github.com/adiaz-uf/InceptionOfThings.git
@@ -46,13 +46,99 @@ Creates 3 web applications running on K3s in one virtual machine. You can access
 ```bash
 cd p2
 make
+
+# Connect to the server
+make s
+
+# See the applications
+curl -H "Host: app1.com" http://192.168.56.110
+curl -H "Host: app2.com" http://192.168.56.110
+curl -H "Host: app3.com" http://192.168.56.110
+curl -H "" http://192.168.56.110 # Default app (app3.com)
 ```
+
+You can also choose to modify your `/etc/hosts` file to see the applications in a web browser.
 
 ## Part 3: K3d and Argo CD
 
+Without using Vagrant, this part creates a K3d cluster and deploys Argo CD to manage git repositories.
 
+```bash
+cd p3
+make
+```
 
-# Team work 💪
+Una vez desplegado:
+
+-   **ArgoCD**: http://localhost:31080
+    -   User: `admin`
+    -   Password: Run `make password` to get it
+-   **Running application**: http://localhost:8888
+
+## Bonus part: Argo CD and local Gitlab
+
+The bonus of the project adds a local Gitlab instance and connects it to Argo CD. This way, any changes pushed to the Gitlab repository will be automatically deployed to the K3d cluster via Argo CD.
+
+```bash
+cd bonus
+make
+```
+
+Once deployed:
+
+-   **GitLab**: http://localhost:8080
+    -   User: `root` + password (shown in terminal)
+-   **ArgoCD**: http://localhost:31080
+    -   User: `admin`
+    -   Password: Run `make password` to get it
+
+# 🗂️ Project structure
+
+```
+.
+├── bonus
+│   ├── confs
+│   │   ├── argocd-server.yaml
+│   │   ├── gitlab-simple.yaml
+│   │   └── will-app.yaml
+│   ├── gitlab
+│   │   └── app-manifests
+│   │       ├── deployment.yaml
+│   │       └── README.md
+│   ├── Makefile
+│   └── scripts
+│       ├── cleanup.sh
+│       ├── deploy.sh
+│       ├── setup.sh
+│       └── verify.sh
+├── p1
+│   ├── Makefile
+│   ├── scripts
+│   │   ├── k3s-server.sh
+│   │   └── k3s-worker.sh
+│   └── Vagrantfile
+├── p2
+│   ├── confs
+│   │   ├── app1.yaml
+│   │   ├── app2.yaml
+│   │   ├── app3.yaml
+│   │   └── ingress.yaml
+│   ├── Makefile
+│   ├── scripts
+│   │   ├── deploy.sh
+│   │   └── setup.sh
+│   └── Vagrantfile
+└── p3
+    ├── confs
+    │   ├── argocd-server.yaml
+    │   └── wil-app.yaml
+    ├── Makefile
+    └── scripts
+        ├── deploy.sh
+        └── setup.sh
+```
+
+# 💪 Team work
 
 This project was a team effort. You can checkout the team members here:
 

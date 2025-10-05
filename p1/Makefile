@@ -1,4 +1,6 @@
-NAME = p1
+NAME	=	p1
+
+RM		=	rm -f
 
 all: up clean-linux
 
@@ -17,7 +19,7 @@ clean-windows:
 	powershell -Command "if (Test-Path ./confs/token) { Remove-Item ./confs/token }"
 
 clean-linux:
-	# ${RM} ./confs/token
+	${RM} ./confs/token
 
 s:
 	vagrant ssh adiaz-ufS
