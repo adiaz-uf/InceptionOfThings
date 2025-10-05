@@ -1,12 +1,12 @@
 NAME = p3
 
-all: deploy
+all: setup up
 
 setup:
 	@echo "Running setup script..."
 	@cd $(shell pwd) && bash scripts/setup.sh
 
-deploy:
+up:
 	@echo "Running deployment script..."
 	@cd $(shell pwd) && bash scripts/deploy.sh
 
@@ -14,7 +14,7 @@ clean:
 	@echo "Destroying K3D cluster..."
 	@k3d cluster delete mycluster || true
 
-re: clean deploy
+re: clean up
 
 status:
 	@echo "Cluster status:"
@@ -30,4 +30,4 @@ password:
 	@echo "ArgoCD admin password:"
 	@kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" 2>/dev/null | base64 -d && echo || echo "ArgoCD not installed"
 
-.PHONY: all setup deploy clean re status password
+.PHONY: all setup up clean re status password

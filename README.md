@@ -68,7 +68,7 @@ cd p3
 make
 ```
 
-Una vez desplegado:
+Once deployed:
 
 -   **ArgoCD**: http://localhost:31080
     -   User: `admin`
@@ -96,21 +96,6 @@ Once deployed:
 
 ```
 .
-├── bonus
-│   ├── confs
-│   │   ├── argocd-server.yaml
-│   │   ├── gitlab-simple.yaml
-│   │   └── will-app.yaml
-│   ├── gitlab
-│   │   └── app-manifests
-│   │       ├── deployment.yaml
-│   │       └── README.md
-│   ├── Makefile
-│   └── scripts
-│       ├── cleanup.sh
-│       ├── deploy.sh
-│       ├── setup.sh
-│       └── verify.sh
 ├── p1
 │   ├── Makefile
 │   ├── scripts
@@ -128,14 +113,29 @@ Once deployed:
 │   │   ├── deploy.sh
 │   │   └── setup.sh
 │   └── Vagrantfile
-└── p3
+├── p3
+│   ├── confs
+│   │   ├── argocd-server.yaml
+│   │   └── wil-app.yaml
+│   ├── Makefile
+│   └── scripts
+│       ├── deploy.sh
+│       └── setup.sh
+└── bonus
     ├── confs
     │   ├── argocd-server.yaml
-    │   └── wil-app.yaml
+    │   ├── gitlab-simple.yaml
+    │   └── will-app.yaml
+    ├── gitlab
+    │   └── app-manifests
+    │       ├── deployment.yaml
+    │       └── README.md
     ├── Makefile
     └── scripts
+        ├── cleanup.sh
         ├── deploy.sh
-        └── setup.sh
+        ├── setup.sh
+        └── verify.sh
 ```
 
 # 💪 Team work
