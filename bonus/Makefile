@@ -2,47 +2,70 @@ NAME = bonus-gitlab
 
 all: up
 
+# Main deployment
 up:
-	vagrant up
+	@echo "🚀 Starting deployment..."
+	@bash scripts/deploy.sh
 
+# Setup prerequisites (Docker, K3d, kubectl)
+setup:
+	@echo "📦 Installing prerequisites..."
+	@bash scripts/setup.sh
+
+# Teardown
 down:
-	vagrant destroy -f
+	@echo "🔽 Destroying cluster..."
+	@k3d cluster delete gitlab-cluster || true
 
+# Full reset
 re: down up
 
-vm:
-	vagrant ssh iot-gitlab
-
+# Sync ArgoCD application
 sync:
-	vagrant ssh iot-gitlab -c "kubectl apply -f confs/will-app.yaml"
+	@kubectl apply -f confs/will-app.yaml
 
 # Essential commands
 verify:
-	vagrant ssh iot-gitlab -c "bash /home/vagrant/scripts/verify.sh"
+	@bash scripts/verify.sh
 
 passwords:
-	@echo "GitLab root password:"
-	@vagrant ssh iot-gitlab -c "kubectl exec -n gitlab deployment/gitlab -- cat /etc/gitlab/initial_root_password 2>/dev/null | grep 'Password:' || echo 'Not available yet - GitLab still starting'"
+	@echo "🔑 GitLab root password:"
+	@kubectl exec -n gitlab deployment/gitlab -- cat /etc/gitlab/initial_root_password 2>/dev/null | grep 'Password:' || echo 'Not available yet - GitLab still starting'
 	@echo ""
-	@echo "ArgoCD admin password:"
-	@vagrant ssh iot-gitlab -c "kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' 2>/dev/null | base64 -d || echo 'Not available yet'"
+	@echo "🔑 ArgoCD admin password:"
+	@kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' 2>/dev/null | base64 -d || echo 'Not available yet'
+	@echo ""
 
 # Monitoring commands
 logs-gitlab:
-	vagrant ssh iot-gitlab -c "kubectl logs -n gitlab deployment/gitlab --tail=50"
+	@kubectl logs -n gitlab deployment/gitlab --tail=50
 
 logs-argocd:
-	vagrant ssh iot-gitlab -c "kubectl logs -n argocd -l app.kubernetes.io/name=argocd-server --tail=50"
+	@kubectl logs -n argocd -l app.kubernetes.io/name=argocd-server --tail=50
 
 status:
-	vagrant ssh iot-gitlab -c "kubectl get pods -A"
+	@kubectl get pods -A
 
 debug:
-	vagrant ssh iot-gitlab -c "echo '=== CLUSTER STATUS ==='; kubectl get nodes"
-	vagrant ssh iot-gitlab -c "echo '=== ALL PODS ==='; kubectl get pods -A"
-	vagrant ssh iot-gitlab -c "echo '=== GITLAB PODS ==='; kubectl get pods -n gitlab"
-	vagrant ssh iot-gitlab -c "echo '=== DEPLOYMENTS ==='; kubectl get deployments -n gitlab"
-	vagrant ssh iot-gitlab -c "echo '=== EVENTS ==='; kubectl get events -n gitlab --sort-by='.lastTimestamp' | tail -10"
+	@echo '=== CLUSTER STATUS ==='
+	@kubectl get nodes
+	@echo ""
+	@echo '=== ALL PODS ==='
+	@kubectl get pods -A
+	@echo ""
+	@echo '=== GITLAB PODS ==='
+	@kubectl get pods -n gitlab
+	@echo ""
+	@echo '=== DEPLOYMENTS ==='
+	@kubectl get deployments -n gitlab
+	@echo ""
+	@echo '=== EVENTS ==='
+	@kubectl get events -n gitlab --sort-by='.lastTimestamp' | tail -10
 
+# Cleanup
+clean: down
+	@echo "🧹 Cleaning up..."
+	@rm -rf ~/.kube/config
+	@rm -f /tmp/gitlab-root-password.txt /tmp/argocd-admin-password.txt
 
-.PHONY: all up down re vm verify passwords logs-gitlab logs-argocd status debug sync
+.PHONY: all up setup down re verify passwords logs-gitlab logs-argocd status debug sync clean

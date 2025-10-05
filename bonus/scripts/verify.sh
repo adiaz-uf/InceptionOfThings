@@ -19,8 +19,8 @@ kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server
 kubectl get svc -n argocd
 
 echo "[5/5] Testing connectivity..."
-echo "GitLab: http://192.168.56.111:8080"
-echo "ArgoCD: http://192.168.56.111:31080"
+echo "GitLab: http://localhost:8080"
+echo "ArgoCD: http://localhost:31080"
 
 echo ""
 echo "🔑 Get passwords:"

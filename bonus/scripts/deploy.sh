@@ -14,6 +14,10 @@ ARGOCD_NODEPORT=31080
 GITLAB_NODEPORT=30888
 APP_NODEPORT=30080
 
+# Get the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
 echo "[1/7] Creating K3D cluster..."
 # Map GitLab, ArgoCD and app ports
 k3d cluster create $CLUSTER_NAME \
@@ -22,10 +26,9 @@ k3d cluster create $CLUSTER_NAME \
   -p "8888:$APP_NODEPORT@loadbalancer" || true
 
 echo "[*] Exporting kubeconfig..."
-mkdir -p /home/vagrant/.kube
-k3d kubeconfig get $CLUSTER_NAME > /home/vagrant/.kube/config
-chown -R vagrant:vagrant /home/vagrant/.kube
-export KUBECONFIG=/home/vagrant/.kube/config
+mkdir -p $HOME/.kube
+k3d kubeconfig get $CLUSTER_NAME > $HOME/.kube/config
+export KUBECONFIG=$HOME/.kube/config
 
 echo "[2/7] Creating Kubernetes namespaces..."
 kubectl create namespace $GITLAB_NS || true
@@ -33,7 +36,7 @@ kubectl create namespace $ARGOCD_NS || true
 kubectl create namespace $DEV_NS || true
 
 echo "[3/7] Installing GitLab..."
-kubectl apply -f /home/vagrant/confs/gitlab-simple.yaml
+kubectl apply -f "$PROJECT_DIR/confs/gitlab-simple.yaml"
 
 echo "[4/7] Waiting for GitLab to be ready (this may take 5-10 minutes)..."
 kubectl wait --for=condition=available --timeout=900s deployment/gitlab -n $GITLAB_NS
@@ -46,7 +49,7 @@ kubectl wait --for=condition=available --timeout=600s deployment/argocd-server -
 
 echo "[6.1/7] Configuring ArgoCD service..."
 kubectl delete svc argocd-server -n $ARGOCD_NS || true
-kubectl apply -f /home/vagrant/confs/argocd-server.yaml
+kubectl apply -f "$PROJECT_DIR/confs/argocd-server.yaml"
 
 echo "[7/7] Getting passwords..."
 # GitLab initial password (will be available after first boot)
@@ -71,8 +74,8 @@ echo "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
 echo "====================================="
 echo ""
 echo "🔗 ACCESS URLS:"
-echo "   GitLab Web UI: http://192.168.56.111:8080"
-echo "   ArgoCD Web UI: http://192.168.56.111:31080"
+echo "   GitLab Web UI: http://localhost:8080"
+echo "   ArgoCD Web UI: http://localhost:31080"
 echo ""
 echo "🔑 LOGIN CREDENTIALS:"
 echo "   GitLab:"
@@ -88,10 +91,10 @@ echo "     Username: admin"
 echo "     Password: $(cat /tmp/argocd-admin-password.txt)"
 echo ""
 echo "📋 NEXT STEPS:"
-echo "   1. Access GitLab at http://192.168.56.111:8080"
+echo "   1. Access GitLab at http://localhost:8080"
 echo "   2. Login with root and the password above"
 echo "   3. Create a public project named 'wil-app'"
-echo "   4. Upload files from /home/vagrant/gitlab/app-manifests/"
-echo "   5. Apply ArgoCD app: kubectl apply -f /home/vagrant/confs/will-app.yaml"
+echo "   4. Upload files from $PROJECT_DIR/gitlab/app-manifests/"
+echo "   5. Apply ArgoCD app: kubectl apply -f $PROJECT_DIR/confs/will-app.yaml"
 echo "   6. Test the deployment!"
 echo "====================================="
