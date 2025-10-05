@@ -12,9 +12,25 @@ APP_NAME="wil-app"
 ARGOCD_NODEPORT=31080
 
 # Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 CONFS_DIR="$PROJECT_DIR/confs"
+
+# Debug: print paths to verify
+echo "Script directory: $SCRIPT_DIR"
+echo "Project directory: $PROJECT_DIR"
+echo "Configs directory: $CONFS_DIR"
+
+# Verify that config files exist
+if [ ! -f "$CONFS_DIR/argocd-server.yaml" ]; then
+    echo "❌ Error: argocd-server.yaml not found at $CONFS_DIR/argocd-server.yaml"
+    exit 1
+fi
+
+if [ ! -f "$CONFS_DIR/wil-app.yaml" ]; then
+    echo "❌ Error: wil-app.yaml not found at $CONFS_DIR/wil-app.yaml"
+    exit 1
+fi
 
 echo "[1/6] Creating K3D cluster..."
 # Map your app port 8888 and ArgoCD nodePort 31080

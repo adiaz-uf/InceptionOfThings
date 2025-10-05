@@ -4,11 +4,11 @@ all: deploy
 
 setup:
 	@echo "Running setup script..."
-	@bash scripts/setup.sh
+	@cd $(shell pwd) && bash scripts/setup.sh
 
 deploy:
 	@echo "Running deployment script..."
-	@bash scripts/deploy.sh
+	@cd $(shell pwd) && bash scripts/deploy.sh
 
 clean:
 	@echo "Destroying K3D cluster..."
