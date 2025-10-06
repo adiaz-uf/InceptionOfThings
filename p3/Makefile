@@ -1,6 +1,6 @@
 NAME = p3
 
-all: setup up
+all: up
 
 setup:
 	@echo "Running setup script..."

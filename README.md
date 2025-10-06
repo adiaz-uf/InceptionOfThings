@@ -65,6 +65,7 @@ Without using Vagrant, this part creates a K3d cluster and deploys Argo CD to ma
 
 ```bash
 cd p3
+make setup
 make
 ```
 
@@ -81,6 +82,7 @@ The bonus of the project adds a local Gitlab instance and connects it to Argo CD
 
 ```bash
 cd bonus
+make setup
 make
 ```
 

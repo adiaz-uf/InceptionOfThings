@@ -10,8 +10,7 @@ sudo apt install -y curl git apt-transport-https ca-certificates gnupg lsb-relea
 
 echo "[3/5] Installing Docker (required for K3d)..."
 curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker vagrant
-echo "Docker installed - user added to docker group"
+echo "Docker installed"
 
 echo "[4/5] Installing K3d (consistent with P3)..."
 curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash

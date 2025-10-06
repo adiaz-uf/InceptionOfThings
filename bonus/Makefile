@@ -1,6 +1,6 @@
 NAME = bonus-gitlab
 
-all: setup up
+all: up
 
 # Main deployment
 up:
