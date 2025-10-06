@@ -51,13 +51,13 @@ spec:
             }
             # Disable memory-intensive features
             prometheus_monitoring['enable'] = false
-        resources:
-          requests:
-            memory: "1.5Gi"
-            cpu: "500m"
-          limits:
-            memory: "3Gi"
-            cpu: "1500m"
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: "1000m"
+        limits:
+          memory: "6Gi"
+          cpu: "2000m"
         volumeMounts:
         - name: gitlab-data
           mountPath: /var/opt/gitlab
